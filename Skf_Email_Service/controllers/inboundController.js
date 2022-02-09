@@ -427,31 +427,27 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                     })
                 } else {
                     if (recordsets.recordset != null) {
-                        // data = [{
-                        //     firstName: 'John',
-                        //     lastName: 'Doe'
-                        // }, {
-                        //     firstName: 'Smith',
-                        //     lastName: 'Peters'
-                        // }, {
-                        //     firstName: 'Alice',
-                        //     lastName: 'Lee'
-                        // }]
                         var data = recordsets.recordset;
                         const ws = XLSX.utils.json_to_sheet(data)
                         const wb = XLSX.utils.book_new()
                         var invoice_No = request.query.invoice_No; // 004201HNWSB1
-                        console.log('InboundData_' + invoice_No + '.xlsx');
+                        // console.log('InboundData_' + invoice_No + '.xlsx');
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
                         XLSX.writeFile(wb, 'document/InboundData_' + invoice_No + '.xlsx')
-                        var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
-                        console.log(downloadLink);
-                        res.send({
-                            "error": 0,
-                            "msg": recordsets.recordset
-
-                        }, 200)
+                            // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
+                        var downloadLink = "D:/WebApplications/Rgl_Skf/document/InboundData_" + invoice_No + ".xlsx ";
+                        var fileName = 'InboundData_' + invoice_No + '.xlsx';
+                        var result = {
+                                'downloadLink': downloadLink,
+                                'fileName': fileName
+                            }
+                            //   console.log(downloadLink);
                     }
+                    res.send({
+                        "error": 0,
+                        "msg": result
+
+                    }, 200)
                 }
             })
 

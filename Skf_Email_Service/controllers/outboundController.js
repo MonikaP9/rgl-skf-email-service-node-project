@@ -56,8 +56,9 @@ exports.outboundDetails = (request, res) => {
             console.log("entered");
 
             //  req.input("WareHouseID", request.query.WarehouseID);
-            req.input("user_id ", request.query.user_id);
-            req.input("picking_id", request.query.picking_id);
+            req.input("WarehouseID ", request.query.WarehouseID);
+            req.input("PickerID", request.query.PickerID);
+            req.input("PickingID", request.query.PickingID);
 
             //Execute store produce
             req.execute("spGetOutboundWebDetails", function(err, recordsets, returnValue) {
@@ -209,7 +210,7 @@ exports.outboundListWeb = (request, res) => {
 
             req.input("user_id", request.query.user_id);
             req.input("picking_ID", request.query.picking_ID);
-            req.input("Status", request.query.Status);
+            req.input("StatusID", request.query.StatusID);
 
             req.execute("spGetOutboundWebList", function(err, recordsets, returnValue) {
                 if (err) res.send(err)
