@@ -137,6 +137,8 @@ exports.inboundDetails = (request, res) => {
 
             //Execute store produce
             req.execute("spGetInboundDetails", function(err, recordsets, returnValue) {
+                console.log("spGetInboundDetails");
+                console.log(recordsets.recordset);
                 if (err) res.send(err);
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
@@ -322,6 +324,8 @@ exports.inboundDetailsWeb = (request, res) => {
             req.input("inbound_ID", request.query.inbound_ID);
 
             req.execute("spGetInboundWebDetails", function(err, recordsets, returnValue) {
+                console.log("spGetInboundWebDetails");
+                // console.log(recordsets['recordsets']);
                 if (err) res.send(err)
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output != "") {
@@ -330,9 +334,21 @@ exports.inboundDetailsWeb = (request, res) => {
                         "msg": recordsets.output.error_msg
                     })
                 } else {
+                    var header;
+                    if (recordsets != null) {
+                        console.log(recordsets);
+                        header = recordsets.recordsets != null && recordsets.recordsets[0].length > 0 ? recordsets.recordsets[0][0] : null;
+                        console.log('header :', header);
+                        var list = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? recordsets.recordsets[1] : [];
+                        console.log('list1 : ', list);
+                        if (header != null)
+                            header.list = list;
+                    } else {
+                        console.log("null");
+                    }
                     res.send({
                         "error": 0,
-                        "msg": recordsets.recordset
+                        "msg": header
                     }, 200)
                 }
             })
@@ -417,7 +433,7 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
             req.input("invoice_No", request.query.invoice_No);
 
             req.execute("spInboundDownload", function(err, recordsets, returnValue) {
-                console.log(recordsets.recordset);
+                // console.log(recordsets.recordset);
                 if (err) res.send(err)
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output != "") {

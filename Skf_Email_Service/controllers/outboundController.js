@@ -249,6 +249,9 @@ exports.outboundDetailsWeb = (request, res) => {
             req.input("picking_id", request.query.picking_id);
 
             req.execute("spGetOutboundWebDetails", function(err, recordsets, returnValue) {
+                console.log("recordsets");
+                console.log(recordsets);
+
                 if (err) res.send(err)
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output != "") {
@@ -257,9 +260,25 @@ exports.outboundDetailsWeb = (request, res) => {
                         "msg": recordsets.output.error_msg
                     })
                 } else {
+                    var header;
+                    if (recordsets != null) {
+                        //   console.log(recordsets);
+                        header = recordsets.recordsets != null && recordsets.recordsets[0].length > 0 ? recordsets.recordsets[0][0] : null;
+                        //  console.log('header :', header);
+                        var orderDetails = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? recordsets.recordsets[1] : [];
+                        //  console.log('list1 : ', list);
+                        if (header != null)
+                            header.orderDetails = orderDetails;
+                        var pickerDetails = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? recordsets.recordsets[2] : [];
+                        if (header != null)
+                            header.pickerDetails = pickerDetails;
+                        // console.log(header);
+                    } else {
+                        console.log("null");
+                    }
                     res.send({
                         "error": 0,
-                        "msg": recordsets.output.error_msg
+                        "msg": header
                     }, 200)
                 }
             })

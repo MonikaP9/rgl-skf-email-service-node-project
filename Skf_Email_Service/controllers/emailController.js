@@ -117,7 +117,7 @@ function spinsertInbound(sheet, date, seq) {
                 //    console.log(column);
                 //  console.log(column.columns);
                 console.log("row =====================");
-                console.log(column.rows);
+                //   console.log(column.rows);
                 console.log(column.rows.length);
 
                 console.log('====================================');
@@ -178,7 +178,7 @@ function spinsertOutbound(sheet, date, seq) {
                 // console.log(column.rows[0]);
                 console.log('====================================');
                 //  console.log(column.columns);
-                console.log(column);
+                //  console.log(column);
 
                 console.log(column.rows.length);
 
