@@ -323,6 +323,7 @@ exports.inboundDetailsWeb = (request, res) => {
             req.input("user_id", request.query.user_id);
             req.input("inbound_ID", request.query.inbound_ID);
 
+
             req.execute("spGetInboundWebDetails", function(err, recordsets, returnValue) {
                 console.log("spGetInboundWebDetails");
                 // console.log(recordsets['recordsets']);
@@ -343,6 +344,12 @@ exports.inboundDetailsWeb = (request, res) => {
                         console.log('list1 : ', list);
                         if (header != null)
                             header.list = list;
+
+                        console.log(header['InvoiceNo']);
+                        var file_Name = 'InboundData_' + header['InvoiceNo'] + '.xlsx';
+                        var fileName = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? file_Name : [];
+                        console.log('fileName : ', fileName);
+                        header.fileName = fileName;
                     } else {
                         console.log("null");
                     }
@@ -451,7 +458,7 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
                         XLSX.writeFile(wb, 'document/InboundData_' + invoice_No + '.xlsx')
                             // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
-                        var downloadLink = "D:/WebApplications/Rgl_Skf/document/InboundData_" + invoice_No + ".xlsx ";
+                        var downloadLink = "http://192.168.3.11:4602/Rgl_Skf/document/InboundData_" + invoice_No + ".xlsx ";
                         var fileName = 'InboundData_' + invoice_No + '.xlsx';
                         var result = {
                                 'downloadLink': downloadLink,

@@ -23,7 +23,7 @@ module.exports = router;
 // http://localhost:7000/inbound/updateInbound?
 // http://localhost:7000/inbound/inboundListWeb?user_id=&invoice_no=004201HNWSB1&LR_No=712640415&From_DC=1100000004&StatusID=0
 // http://localhost:7000/inbound/inboundDelete?user_id=2&inbound_ID=2
-// http://localhost:7000/inbound/inboundWebDetails?user_id=1&inbound_ID=1
+// http://localhost:7000/inbound/inboundWebDetails?user_id=1&inbound_ID=1&invoice_no=004201HNWSB1
 
 
 // (pending)
