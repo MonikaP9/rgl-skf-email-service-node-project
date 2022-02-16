@@ -111,12 +111,12 @@ exports.updateOutbound = (request, res) => {
             var req = new sql.Request(conn);
             var udtOutBoundDtlScan = new sql.Table();
 
-            udtOutBoundDtlScan.columns.add('OutboundDtlID', sql.Int);
+            udtOutBoundDtlScan.columns.add('OutBoundDtlID', sql.Int);
             udtOutBoundDtlScan.columns.add('PickerID', sql.Int);
-            udtOutBoundDtlScan.columns.add('ScanDatetime', sql.DateTime);
-            udtOutBoundDtlScan.columns.add('Location', sql.VarChar(50));
+            udtOutBoundDtlScan.columns.add('ScanningDtetime', sql.DateTime);
+            udtOutBoundDtlScan.columns.add('BinLocation', sql.VarChar(50));
             udtOutBoundDtlScan.columns.add('Qty', sql.Int);
-            udtOutBoundDtlScan.columns.add('DeleteTime', sql.DateTime);
+            udtOutBoundDtlScan.columns.add('DeleteDatetime', sql.DateTime);
 
 
             var barcode = request.body.scannedData;
@@ -125,10 +125,10 @@ exports.updateOutbound = (request, res) => {
             // console.log('barcode data :',barcodeList);
 
             barcode.forEach(element => {
-                udtOutBoundDtlScan.rows.add(element.OutboundDtlID, element.PickerID, new Date(element.ScanDatetime), element.Location, element.Qty, element.DeleteTime != '' ? new Date(element.DeleteTime) : null);
+                udtOutBoundDtlScan.rows.add(element.OutBoundDtlID, element.PickerID, new Date(element.ScanningDtetime), element.BinLocation, element.Qty, element.DeleteDatetime != '' ? new Date(element.DeleteDatetime) : null);
             });
 
-            req.input("PickerID", request.body.PickerID);
+            req.input("InvoiceNo", request.body.InvoiceNo);
             req.input("udtOutBoundDtlScan", udtOutBoundDtlScan);
 
 
