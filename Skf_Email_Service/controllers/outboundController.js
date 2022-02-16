@@ -11,12 +11,13 @@ exports.outboundList = (request, res) => {
             var req = new sql.Request(conn);
             console.log("entered");
 
-            req.input("WarehouseID", request.query.WarehouseID);
+            req.input("WareHouseID", request.query.WareHouseID);
             req.input("PickerID", request.query.PickerID);
-            req.input("StatusID", request.query.status);
+            req.input("StatusID", request.query.StatusID);
 
             //Execute store produce
             req.execute("spGetOutBoundList", function(err, recordsets, returnValue) {
+                console.log(recordsets.recordset.length);
                 if (err) res.send(err)
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
@@ -25,7 +26,7 @@ exports.outboundList = (request, res) => {
                         "msg": recordsets.output.error_msg
                     })
                 } else {
-                    console.log(recordsets);
+                    //  console.log(recordsets);
                     res.send({
                         "error": 0,
                         "data": recordsets.recordset
@@ -56,12 +57,12 @@ exports.outboundDetails = (request, res) => {
             console.log("entered");
 
             //  req.input("WareHouseID", request.query.WarehouseID);
-            req.input("WarehouseID ", request.query.WarehouseID);
+            req.input("WareHouseID", request.query.WareHouseID);
             req.input("PickerID", request.query.PickerID);
             req.input("PickingID", request.query.PickingID);
 
             //Execute store produce
-            req.execute("spGetOutboundWebDetails", function(err, recordsets, returnValue) {
+            req.execute("spGetOutboundDetails", function(err, recordsets, returnValue) {
                 if (err) res.send(err);
                 else
                 if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
@@ -127,7 +128,7 @@ exports.updateOutbound = (request, res) => {
                 udtOutBoundDtlScan.rows.add(element.OutboundDtlID, element.PickerID, new Date(element.ScanDatetime), element.Location, element.Qty, element.DeleteTime != '' ? new Date(element.DeleteTime) : null);
             });
 
-            req.input("invoiceNo", request.body.invoiceNo);
+            req.input("PickerID", request.body.PickerID);
             req.input("udtOutBoundDtlScan", udtOutBoundDtlScan);
 
 

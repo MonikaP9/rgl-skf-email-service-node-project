@@ -178,7 +178,7 @@ function spinsertOutbound(sheet, date, seq) {
                 // console.log(column.rows[0]);
                 console.log('====================================');
                 //  console.log(column.columns);
-                //  console.log(column);
+                console.log(column);
 
                 console.log(column.rows.length);
 
@@ -190,7 +190,7 @@ function spinsertOutbound(sheet, date, seq) {
                 req.input('SeqNo', seq);
                 //Execute Store procedure  
                 req.execute('spInsertEmailImportOutBound', async function(err, recordsets, returnValue) {
-                    // console.log(recordsets)
+                    console.log(recordsets)
                     if (err) {
                         console.log('spInsertEmailImportOutBound error : ', err);
                         sendLoggers(2, date, "outbound sp error", err)
@@ -229,6 +229,8 @@ function spUpdateEmailSeqNo(typeId, seqNo) {
                     }
                     var datecurrent = new Date()
                     sendLoggers(0, convertDate(datecurrent), "seq no update sp successful", "data inserted")
+                    console.log(seqNo);
+
                     resolve(recordsets)
                 })
             })
@@ -260,7 +262,7 @@ exports.extractEmailAttachment = function(req, res) {
                 imaps.connect(config).then(function(connection) {
                     connection.openBox('INBOX').then((mes) => {
                         console.log("mail read started");
-                        //  console.log('recordsets: ', recordsets);
+                        console.log('recordsets: ', recordsets);
                         //get all message count.......................
                         totalMessageCount = mes['messages']['total'];
                         console.log('total message count: ', totalMessageCount);
@@ -272,8 +274,8 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "4810"
-                            // `${isDeleted ? (totalMessageCount+1) : (recordsets['recordset'][0].InBoundSeqNo+1)}:${isDeleted ? (totalMessageCount+20) : (recordsets['recordset'][0].InBoundSeqNo+20)}`
+                            // "4810"
+                            `${isDeleted ? (totalMessageCount+1) : (recordsets['recordset'][0].InBoundSeqNo+1)}:${isDeleted ? (totalMessageCount+50) : (recordsets['recordset'][0].InBoundSeqNo+50)}`
                         ];
 
                         var fetchOptions = { bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'], struct: true }

@@ -2,7 +2,8 @@ var config = require("../config/db.config");
 const sql = require("mssql");
 const { request } = require("express");
 var XLSX = require('xlsx');
-
+var http = require('http');
+var fs = require('fs');
 
 //get inboundList 
 exports.inboundList = (request, res) => {
@@ -347,9 +348,9 @@ exports.inboundDetailsWeb = (request, res) => {
 
                         console.log(header['InvoiceNo']);
                         var file_Name = 'InboundData_' + header['InvoiceNo'] + '.xlsx';
-                        var fileName = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? file_Name : [];
-                        console.log('fileName : ', fileName);
-                        header.fileName = fileName;
+                        file_Name = recordsets.recordsets != null && recordsets.recordsets.length > 0 ? file_Name : [];
+                        // console.log('fileName : ', file_Name);
+                        header.file_Name = file_Name;
                     } else {
                         console.log("null");
                     }
@@ -464,13 +465,33 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                                 'downloadLink': downloadLink,
                                 'fileName': fileName
                             }
-                            //   console.log(downloadLink);
-                    }
-                    res.send({
-                        "error": 0,
-                        "msg": result
+                            // res.send({
+                            //     "error": 0,
+                            //     "msg": result
 
-                    }, 200)
+                        // }, 200)
+
+                        // ===
+                        var readStream = fs.createReadStream(downloadLink);
+                        var writeStream = fs.createWriteStream(downloadLink);
+                        http.request(downloadLink, function(res) {
+                            res.pipe(writeStream);
+                        });
+                        // req(downloadLink, function(err, res) {
+                        //     readStream.pipe(res);
+                        //     readStream.on('end', function() {
+                        //         //res.end({"status":"Completed"});
+                        //     });
+                        // });
+
+                        //   console.log(downloadLink);
+                        // ==============
+
+
+
+                    }
+
+
                 }
             })
 
