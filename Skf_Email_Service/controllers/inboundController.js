@@ -4,6 +4,7 @@ const { request } = require("express");
 var XLSX = require('xlsx');
 var http = require('http');
 var fs = require('fs');
+var cors = require('cors');
 
 //get inboundList 
 exports.inboundList = (request, res) => {
@@ -459,7 +460,7 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
                         XLSX.writeFile(wb, 'document/InboundData_' + invoice_No + '.xlsx')
                             // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
-                        var downloadLink = "http://192.168.3.11:4602/Rgl_Skf/document/InboundData_" + invoice_No + ".xlsx ";
+                        var downloadLink = "http://192.168.3.11:4602/inbound/document";
                         var fileName = 'InboundData_' + invoice_No + '.xlsx';
                         var result = {
                                 'downloadLink': downloadLink,
@@ -500,4 +501,19 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
             console.log(err);
             conn.close();
         })
+}
+
+exports.downloadDoc=(request, res)=>{
+    var fileName = request.query.file_name;
+    console.log('filename : ',fileName);
+    if(fileName != null && fs.existsSync('./document/'+fileName)){
+        //./document/InboundData_004201HNWSB1.xlsx
+        res.download("./document/"+fileName)
+    }else{
+        res.send(200, {
+            "error": 1,
+            "msg": 'Unable to process please check file name.'
+        })
+    }
+    
 }
