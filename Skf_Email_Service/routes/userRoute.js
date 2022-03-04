@@ -5,6 +5,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 
 router.post("/verify", userController.verifyUser);
+router.post("/verifyPicker", userController.verifyPicker);
 
 module.exports = router;
 

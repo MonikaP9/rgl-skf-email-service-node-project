@@ -128,7 +128,7 @@ function spinsertInbound(sheet, date, seq) {
                 req.input('SeqNo', seq);
                 //Execute Store procedure  
                 req.execute('spInsertEmailImportInBound', async function(err, recordsets, returnValue) {
-                    console.log(recordsets)
+                    // console.log(recordsets)
                     if (err) {
                         console.log('spInsertEmailImportInBound error : ', err);
                         sendLoggers(1, date, "inbound sp error", err)
@@ -274,8 +274,8 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            // "4810"
-                            `${isDeleted ? (totalMessageCount+1) : (recordsets['recordset'][0].InBoundSeqNo+1)}:${isDeleted ? (totalMessageCount+50) : (recordsets['recordset'][0].InBoundSeqNo+50)}`
+                            "4933"
+                            // `${isDeleted ? (totalMessageCount+1) : (recordsets['recordset'][0].InBoundSeqNo+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordset'][0].InBoundSeqNo+10)}`
                         ];
 
                         var fetchOptions = { bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'], struct: true }
@@ -372,7 +372,7 @@ exports.extractEmailAttachment = function(req, res) {
                                 for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
                                 var bstr = arr.join("");
                                 try {
-                                    const workSheetsFromBuffer = xlsx.parse(attach.data);
+                                    const workSheetsFromBuffer = xlsx.parse(attach.data,{ cellDates: true, raw: false, blankrows: false });
                                     workSheetsFromBuffer.forEach(workbook => {
                                         promises.push({
                                             'sheet': workbook.data,

@@ -205,6 +205,7 @@ exports.updateInbound = (request, res) => {
             });
 
             req.input("invoiceNo", request.body.invoiceNo);
+            req.input("PickerID", request.body.PickerID);
             req.input("udtInBoundDtlScan", udtInBoundDtlScan);
 
 
@@ -438,6 +439,7 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
         //successfull connection 
         .then(function() {
             var req = new sql.Request(conn);
+            var isFromList = request.query.is_from_list;
             req.input("User_ID", request.query.User_ID);
             req.input("invoice_No", request.query.invoice_No);
 
@@ -458,37 +460,29 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         var invoice_No = request.query.invoice_No; // 004201HNWSB1
                         // console.log('InboundData_' + invoice_No + '.xlsx');
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
-                        XLSX.writeFile(wb, 'document/InboundData_' + invoice_No + '.xlsx')
+                        XLSX.writeFile(wb, './document/InboundData_' + invoice_No + '.xlsx')
                             // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
-                        var downloadLink = "http://192.168.3.11:4602/inbound/document";
                         var fileName = 'InboundData_' + invoice_No + '.xlsx';
-                        var result = {
-                                'downloadLink': downloadLink,
+                        if(isFromList != null && isFromList){
+                            if(fileName != null && fs.existsSync('./document/'+fileName)){
+                                //./document/InboundData_004201HNWSB1.xlsx
+                                res.download("./document/"+fileName)
+                            }else{
+                                res.send(200, {
+                                    "error": 1,
+                                    "msg": 'Unable to process please check file name.'
+                                })
+                            }
+                        }else{
+                            var result = {
                                 'fileName': fileName
                             }
-                            // res.send({
-                            //     "error": 0,
-                            //     "msg": result
-
-                        // }, 200)
-
-                        // ===
-                        var readStream = fs.createReadStream(downloadLink);
-                        var writeStream = fs.createWriteStream(downloadLink);
-                        http.request(downloadLink, function(res) {
-                            res.pipe(writeStream);
-                        });
-                        // req(downloadLink, function(err, res) {
-                        //     readStream.pipe(res);
-                        //     readStream.on('end', function() {
-                        //         //res.end({"status":"Completed"});
-                        //     });
-                        // });
-
-                        //   console.log(downloadLink);
-                        // ==============
-
-
+                            res.send({
+                                "error": 0,
+                                "msg": result
+                        }, 200)
+                        }
+                    
 
                     }
 

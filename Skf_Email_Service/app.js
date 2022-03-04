@@ -2,7 +2,19 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 7000;
-app.use(cors());
+const corsOpts = {
+    origin: '*',
+  
+    methods: [
+      'GET',
+      'POST',
+    ],
+  
+    allowedHeaders: [
+      'Content-Type',
+    ],
+  };
+app.use(cors(corsOpts));
 var cron = require('node-cron');
 const request = require('request');
 app.use(express.json());
@@ -38,7 +50,7 @@ app.use("/inbound", inboundRouter);
 app.use("/user", userRouter);
 
 
-cron.schedule(`*/5 * * * *`, () => {
+cron.schedule(`*/2 * * * *`, () => {
     console.log('running a task 5 minute minute');
     console.log(new Date().timeNow());
     request('http://localhost:7000/email/details', function(error, response, body) {

@@ -128,7 +128,8 @@ exports.updateOutbound = (request, res) => {
                 udtOutBoundDtlScan.rows.add(element.OutBoundDtlID, element.PickerID, new Date(element.ScanningDtetime), element.BinLocation, element.Qty, element.DeleteDatetime != '' ? new Date(element.DeleteDatetime) : null);
             });
 
-            req.input("InvoiceNo", request.body.InvoiceNo);
+            req.input("PickingID", request.body.PickingID);
+            req.input("PickerID", request.body.PickerID);
             req.input("udtOutBoundDtlScan", udtOutBoundDtlScan);
 
 

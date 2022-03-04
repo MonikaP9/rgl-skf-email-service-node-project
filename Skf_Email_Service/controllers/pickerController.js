@@ -90,6 +90,8 @@ exports.addPicker = (request, res) => {
             console.log("entered");
             req.input("PickerName", request.body.PickerName);
             req.input("WareHouseID", request.body.WareHouseID);
+            req.input("password", request.body.password);
+            req.input("errormsg", "");
 
             //Execute store produce
             req.execute("spInsertPicker", function(err, recordsets, returnValue) {
