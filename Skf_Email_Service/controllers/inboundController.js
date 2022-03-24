@@ -205,7 +205,7 @@ exports.updateInbound = (request, res) => {
             });
 
             req.input("invoiceNo", request.body.invoiceNo);
-            req.input("PickerID", request.body.PickerID);
+			req.input("PickerID", request.body.PickerID);
             req.input("udtInBoundDtlScan", udtInBoundDtlScan);
 
 
@@ -460,7 +460,9 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         var invoice_No = request.query.invoice_No; // 004201HNWSB1
                         // console.log('InboundData_' + invoice_No + '.xlsx');
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
+						console.log('123................');
                         XLSX.writeFile(wb, './document/InboundData_' + invoice_No + '.xlsx')
+						console.log('1456................');
                             // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
                         var fileName = 'InboundData_' + invoice_No + '.xlsx';
                         if(isFromList != null && isFromList){

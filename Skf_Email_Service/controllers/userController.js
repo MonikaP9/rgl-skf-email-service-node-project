@@ -54,16 +54,19 @@ exports.verifyPicker = (request, res) => {
         req.input("warehouseid", request.body.WareHouseID);
         req.input("pickername", request.body.PickerName);
         req.input("password", request.body.password);
+		req.output('errormsg', sql.VarChar(sql.MAX))
 
         //Execute store produce
 
         req.execute("spVerifyPicker", function(err, recordsets, returnValue) {
             if (err) res.send(err)
             else
-            if (recordsets.output != null && recordsets.output.error_mg != null && recordsets.output.error_mg != "") {
+				
+            if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
+				console.log('error message : ',recordsets);
                 res.send(200, {
                     "error": 1,
-                    "msg": recordsets.error_mg
+                    "msg": recordsets.output.errormsg
                 })
             } else {
                 res.send({

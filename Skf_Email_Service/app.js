@@ -4,6 +4,8 @@ const app = express();
 const port = process.env.PORT || 7000;
 const corsOpts = {
     origin: '*',
+	credentials: true, 
+	
   
     methods: [
       'GET',
@@ -14,7 +16,7 @@ const corsOpts = {
       'Content-Type',
     ],
   };
-app.use(cors(corsOpts));
+app.use(cors({credentials: true, origin: true}));
 var cron = require('node-cron');
 const request = require('request');
 app.use(express.json());

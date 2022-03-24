@@ -90,19 +90,21 @@ exports.addPicker = (request, res) => {
             console.log("entered");
             req.input("PickerName", request.body.PickerName);
             req.input("WareHouseID", request.body.WareHouseID);
-            req.input("password", request.body.password);
-            req.input("errormsg", "");
+			req.input("password", request.body.pass);
+			req.output('errormsg', sql.VarChar(sql.MAX))
 
             //Execute store produce
             req.execute("spInsertPicker", function(err, recordsets, returnValue) {
                 if (err) res.send(err);
                 else
-                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
+					//console.log("error : ",recordsets);
                     res.send(200, {
                         "error": 1,
-                        "msg": recordsets.output.error_msg
+                        "msg": recordsets.output.errormsg
                     })
                 } else {
+					//console.log("success : ",recordsets);
                     res.send({
                         "error": 0,
                         "msg": recordsets.recordset
@@ -169,15 +171,16 @@ exports.addLocation = (request, res) => {
             console.log("entered");
             req.input("code", request.body.code);
             req.input("WareHouseID", request.body.WareHouseID);
+			req.output('errormsg', sql.VarChar(sql.MAX))
 
             //Execute store produce
             req.execute("spInsertLocation", function(err, recordsets, returnValue) {
                 if (err) res.send(err);
                 else
-                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
                     res.send(200, {
                         "error": 1,
-                        "msg": recordsets.output.error_msg
+                        "msg": recordsets.output.errormsg
                     })
                 } else {
                     res.send({
@@ -333,15 +336,16 @@ exports.addProduct = (request, res) => {
             req.input("pack_code", request.body.pack_code);
             req.input("box_qty", request.body.box_qty);
             req.input("commodity", request.body.commodity);
+			req.output('errormsg', sql.VarChar(sql.MAX))
 
             //Execute store produce
             req.execute("spInsertProduct", function(err, recordsets, returnValue) {
                 if (err) res.send(err);
                 else
-                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
                     res.send(200, {
                         "error": 1,
-                        "msg": recordsets.output.error_msg
+                        "msg": recordsets.output.errormsg
                     })
                 } else {
                     res.send({
@@ -373,15 +377,16 @@ exports.updateProduct = (request, res) => {
                 req.input("pack_code", request.body.pack_code);
                 req.input("box_qty", request.body.box_qty);
                 req.input("commodity", request.body.commodity);
+				req.output('errormsg', sql.VarChar(sql.MAX))
 
                 //Execute store produce
                 req.execute("spUpdateProduct", function(err, recordsets, returnValue) {
                     if (err) res.send(err);
                     else
-                    if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                    if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
                         res.send(200, {
                             "error": 1,
-                            "msg": recordsets.output.error_msg
+                            "msg": recordsets.output.errormsg
                         })
                     } else {
                         res.send({

@@ -10,6 +10,9 @@ const inboundColumn = require('../config/inboundColumn');
 var XLSX = require('xlsx');
 const _ = require('lodash');
 const simpleParser = require('mailparser').simpleParser;
+const { split, join } = require('lodash');
+var LocalStorage = require('node-localstorage').LocalStorage
+var localStorage = new LocalStorage('./scratch');
 //regex for emails extraction
 function extractEmails(text) {
     return text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi)
@@ -87,118 +90,117 @@ function sendLoggers(type, date, event, remark, seqNo) {
 }
 
 //SO sp call
-function spinsertInbound(sheet, date, seq) {
+function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, emailFileName, seqNo, docNo) {
     return new Promise(function(resolve, reject) {
         var conn = new sql.ConnectionPool(dbconfig);
         conn.connect()
             // Successfull connection
             .then(() => {
                 // Create request instance, passing in connection instance
+                var datecurrent = new Date()
+                sendLoggers(0, convertDate(datecurrent), "insert process started for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
 
                 var req = new sql.Request(conn);
                 var column = new sql.Table();
-                // // Columns must correspond with type we have created in database.  
+                console.log("emailFrom  :", emailFrom[0]);
+                console.log("emailSubject  :", emailSubject[0]);
 
-                inboundColumn.forEach(columnName => {
+                req.input('fromClause', sql.VarChar(100), emailFrom[0]);
+                req.input('Subject', sql.VarChar(200), emailSubject[0]);
+
+
+                // For single file columns name
+                var columnsData = [];
+                for (var n = 0; n < emailColumnName[0].length; n++) {
+                    columnsData[n] = emailColumnName[0][n];
+                }
+
+                console.log("columnsData[n]  :" + columnsData);
+                columnsData.forEach(columnName => {
                     column.columns.add(columnName, sql.VarChar(100));
                 })
 
-                //    Add data into the table that will be pass into the procedure  
-                for (var i = 1; i < sheet.length; i++) {
-                    column.rows.add(
-                        sheet[i][0], sheet[i][1], sheet[i][2], sheet[i][3], sheet[i][4], sheet[i][5],
-                        sheet[i][6], sheet[i][7], sheet[i][8], sheet[i][9], sheet[i][10], sheet[i][11],
-                        sheet[i][12], sheet[i][13], sheet[i][14], sheet[i][15], sheet[i][16], sheet[i][17],
-                        sheet[i][18], sheet[i][19], sheet[i][20], sheet[i][21], sheet[i][22]
-                    )
-                }
+                var stringData = JSON.stringify(columnsData.toString());
 
-                console.log('====================================');
-                //    console.log(column);
-                //  console.log(column.columns);
-                console.log("row =====================");
-                //   console.log(column.rows);
-                console.log(column.rows.length);
+                req.input('UDTColumns', sql.VarChar(1000), stringData.split('"').join(''));
+                sendLoggers(0, convertDate(datecurrent), "column prepared success for sp spGetImportColumnNames", "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
+                var udtName;
+                // Send column names to sp
+                console.log("spGetImportColumnNames call");
+                req.execute('spGetImportColumnNames', function(err, recordsets, returnValue) {
+                    console.log(recordsets);
+                    console.log(recordsets['recordset'][0]['UDTName']);
 
-                console.log('====================================');
-                console.log("sp sales order call " + date + seq);
-                req.input('udtEmailImportInBound', column);
-                req.input('EmailDate', date);
-                req.input('FieldValues', sheet[1]);
-                req.input('SeqNo', seq);
-                //Execute Store procedure  
-                req.execute('spInsertEmailImportInBound', async function(err, recordsets, returnValue) {
-                    // console.log(recordsets)
+                    udtName = recordsets['recordset'][0]['UDTName'];
+                    console.log(udtName);
                     if (err) {
-                        console.log('spInsertEmailImportInBound error : ', err);
-                        sendLoggers(1, date, "inbound sp error", err)
+                        console.log('spGetImportColumnName error : ', err);
+                        console.log("err " + err);
+
+                        sendLoggers(0, "spGetImportColumnNames error", emailFileName[0], err);
                     } else {
-                        sendLoggers(1, date, "sp successful", "inbound data inserted")
-                        resolve(recordsets)
+
+                        sendLoggers(0, convertDate(datecurrent), "spGetImportColumnNames called successful with udtname as " + udtName, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
+                        //============================
+                        //To send row data
+                        if (udtName != null) {
+                            var spName = '';
+                            //console.log("sheetRowData : -" + sheetRowData[1][1]);
+                            console.log('row data length : ', sheetRowData[0].length);
+                            for (var n = 1; n < sheetRowData[0].length; n++) {
+                                if (udtName.trim() == 'udtEmailImportInBound') {
+                                    spName = 'spInsertEmailImportInBound';
+                                    column.rows.add(
+                                        sheetRowData[0][n][0], sheetRowData[0][n][1], sheetRowData[0][n][2], sheetRowData[0][n][3], sheetRowData[0][n][4], sheetRowData[0][n][5],
+                                        sheetRowData[0][n][6], sheetRowData[0][n][7], sheetRowData[0][n][8], sheetRowData[0][n][9], sheetRowData[0][n][10], sheetRowData[0][n][11],
+                                        sheetRowData[0][n][12], sheetRowData[0][n][13], sheetRowData[0][n][14], sheetRowData[0][n][15], sheetRowData[0][n][16],
+                                        sheetRowData[0][n][17], sheetRowData[0][n][18], sheetRowData[0][n][19], sheetRowData[0][n][20], sheetRowData[0][n][21], sheetRowData[0][n][22]
+                                    );
+                                }else if (udtName.trim() == 'udtEmailImportOutBound') {
+                                    spName = 'spInsertEmailImportOutBound';
+                                    column.rows.add(
+                                        sheetRowData[0][n][0], sheetRowData[0][n][1], sheetRowData[0][n][2], sheetRowData[0][n][3], sheetRowData[0][n][4], sheetRowData[0][n][5],
+                                        sheetRowData[0][n][6], sheetRowData[0][n][7], sheetRowData[0][n][8], sheetRowData[0][n][9], sheetRowData[0][n][10], sheetRowData[0][n][11],
+                                        sheetRowData[0][n][12], sheetRowData[0][n][13], sheetRowData[0][n][14], sheetRowData[0][n][15], sheetRowData[0][n][16],
+                                        sheetRowData[0][n][17], sheetRowData[0][n][18], sheetRowData[0][n][19], sheetRowData[0][n][20], sheetRowData[0][n][21], sheetRowData[0][n][22],
+                                        sheetRowData[0][n][23], sheetRowData[0][n][24], sheetRowData[0][n][25], sheetRowData[0][n][26], sheetRowData[0][n][27], sheetRowData[0][n][28], sheetRowData[0][n][29]
+                                    );
+                                } 
+
+                            }
+                           
+                            console.log("UDT name", udtName);
+                            console.log("row Data length :-", column.rows.length);
+                            req.input('seqNo', seqNo);
+                            req.input(udtName, column);
+                            req.input('UserID', sql.Int, 1)
+                            // console.log('table :',column)
+                            sendLoggers(0, convertDate(datecurrent), `Table prepared for spEmailImportRow`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
+                            req.execute('spEmailImportRow', function(err, recordsets, returnValue) {
+                                // console.log(recordsets)
+                                console.log(`spEmailImportRow recordsets :`)
+                                if (err) {
+                                    console.log(`spEmailImportRow error : `, err);
+                                    sendLoggers(0, convertDate(datecurrent), `spEmailImportRow error : `, err)
+                                } else {
+                                    sendLoggers(0, convertDate(datecurrent), `spEmailImportRow executed successfully`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
+                                    sendLoggers(0, convertDate(datecurrent), "insert process ended for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
+                                    localStorage.setItem('process','finished');
+                                    resolve(recordsets)
+                                }
+                            })
+
+                        } else {
+                            console.log("return not udtName ");
+                        }
+                        //==========================
                     }
-                })
-            })
-            // Handle connection errors
-            .catch(function(err) {
-                console.log(err);
-                conn.close();
-                reject(err)
-            });
+                });
+                //============***==========
 
-    })
-}
 
-function spinsertOutbound(sheet, date, seq) {
-    return new Promise(function(resolve, reject) {
-        var conn = new sql.ConnectionPool(dbconfig);
-        conn.connect()
-            // Successfull connection
-            .then(() => {
-                // Create request instance, passing in connection instance
-
-                var req = new sql.Request(conn);
-                var column = new sql.Table();
-                // // Columns must correspond with type we have created in database.  
-
-                outboundColumn.forEach(columnName => {
-                    column.columns.add(columnName, (columnName == 'HHADR1' ||
-                        columnName == 'HHADR2' || columnName == 'HHADR3' || columnName == 'HHADR4') ? sql.NVarChar(500) : sql.VarChar(100));
-                })
-
-                //    Add data into the table that will be pass into the procedure  
-                for (var i = 1; i < sheet.length; i++) {
-                    column.rows.add(
-                        sheet[i][0], sheet[i][1], sheet[i][2], sheet[i][3], sheet[i][4], sheet[i][5],
-                        sheet[i][6], sheet[i][7], sheet[i][8], sheet[i][9], sheet[i][10], sheet[i][11],
-                        sheet[i][12], sheet[i][13], sheet[i][14], sheet[i][15], sheet[i][16], sheet[i][17],
-                        sheet[i][18], sheet[i][19], sheet[i][20], sheet[i][21], sheet[i][22], sheet[i][23],
-                        sheet[i][24], sheet[i][25], sheet[i][26], sheet[i][27], sheet[i][28], sheet[i][29],
-                    )
-                }
-                // console.log(column.rows[0]);
-                console.log('====================================');
-                //  console.log(column.columns);
-                console.log(column);
-
-                console.log(column.rows.length);
-
-                console.log('====================================');
-                console.log("sp sales order call " + date + seq);
-                req.input('udtEmailImportOutBound', column);
-                req.input('EmailDate', date);
-                req.input('FieldValues', sheet[1]);
-                req.input('SeqNo', seq);
-                //Execute Store procedure  
-                req.execute('spInsertEmailImportOutBound', async function(err, recordsets, returnValue) {
-                    console.log(recordsets)
-                    if (err) {
-                        console.log('spInsertEmailImportOutBound error : ', err);
-                        sendLoggers(2, date, "outbound sp error", err)
-                    } else {
-                        sendLoggers(2, date, "sp successful", "outbound data inserted")
-                        resolve(recordsets)
-                    }
-                })
+                //     }, 3000);
+                // }
             })
             // Handle connection errors
             .catch(function(err) {
@@ -223,14 +225,12 @@ function spUpdateEmailSeqNo(typeId, seqNo) {
                 req.input('SeqNo', seqNo);
                 //Execute Store procedure  
                 req.execute('spUpdateEmailSeqNo', async function(err, recordsets, returnValue) {
-                    // console.log(recordsets)
+                    //  console.log(recordsets)
                     if (err) {
                         console.log('error log :', err);
                     }
                     var datecurrent = new Date()
                     sendLoggers(0, convertDate(datecurrent), "seq no update sp successful", "data inserted")
-                    console.log(seqNo);
-
                     resolve(recordsets)
                 })
             })
@@ -256,32 +256,47 @@ exports.extractEmailAttachment = function(req, res) {
             var msgFor = '';
             //Execute Store procedure  
             req.execute('spGetEmailDetails', function(err, recordsets, returnValue) {
-                //    console.log('spGetEmailDetails', recordsets);
+                // console.log('spGetEmailDetails', recordsets.recordsets);
+                // console.log('spGetEmailDetails', recordsets);
                 var totalMessageCount;
                 var isDeleted = false;
+                var subjectMain = '';
                 imaps.connect(config).then(function(connection) {
+
                     connection.openBox('INBOX').then((mes) => {
-                        console.log("mail read started");
+                        // console.log('mes: ', mes);
                         console.log('recordsets: ', recordsets);
+                        console.log("mail read started");
                         //get all message count.......................
                         totalMessageCount = mes['messages']['total'];
                         console.log('total message count: ', totalMessageCount);
+                        // console.log('SeqNo: ', recordsets['recordsets'][1][0]['AMPMSeqNo']);
+                        console.log('SeqNo: ', recordsets['recordsets'][0]);
+                        // return;
+                        console.log('SeqNo: ', recordsets['recordsets'][0][0]['InBoundSeqNo']);
+                        // console.log('fileName: ', recordsets['recordsets'][1][0]['Name']);
                         //check total count and our table count is same or not if less then message get deleted....
-                        if (totalMessageCount < recordsets['recordset'][0].InBoundSeqNo) {
+                        if (totalMessageCount < recordsets['recordsets'][0][0]['InBoundSeqNo']) {
                             isDeleted = true;
                             //sp call to change count for so................
                             spUpdateEmailSeqNo(1, totalMessageCount);
                         }
 
                         searchCriteria = [
-                            "4933"
-                            // `${isDeleted ? (totalMessageCount+1) : (recordsets['recordset'][0].InBoundSeqNo+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordset'][0].InBoundSeqNo+10)}`
+                            "5623"
+                            //  `${isDeleted ? (totalMessageCount+1) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+10)}`
                         ];
 
                         var fetchOptions = { bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'], struct: true }
 
                         return connection.search(searchCriteria, fetchOptions)
                     }).then(function(messages) {
+                        if(localStorage != null && localStorage.getItem('process') != null && localStorage.getItem('process') == 'start'){
+                            console.log('already one process running..........');
+                            return;
+                        }else{
+                            localStorage.setItem('start');
+                        }
                         var datecurrent = new Date()
                         sendLoggers(0, convertDate(datecurrent), "Process Start", "")
                         console.log("mail count : ", messages.length);
@@ -291,64 +306,37 @@ exports.extractEmailAttachment = function(req, res) {
                             var datecurrent = new Date()
                             sendLoggers(0, convertDate(datecurrent), "no mails found", "")
                         } else {
-                            sendLoggers(1, convertDate(messages[messages.length - 1].attributes.date), "inbound sequence Number ", "", messages[messages.length - 1].seqNo)
-                            sendLoggers(2, convertDate(messages[messages.length - 1].attributes.date), "outbound sequence Number ", "", messages[messages.length - 1].seqNo)
+                            sendLoggers(1, convertDate(messages[messages.length - 1].attributes.date), "sequence Number ", "", messages[messages.length - 1].seqNo)
                             messages.forEach(function(message) {
-                                var from = extractEmails(message.parts[0].body.from[0])
-                                console.log(message.parts[0].body.subject[0]);
-                                console.log(recordsets['recordset'][0].InBoundFromEmail.split(','));
-                                var skfEmailList = message != null && message.parts[0].body.subject[0].toLowerCase() === 'inbound' ? recordsets['recordset'][0].InBoundFromEmail.split(',') : recordsets['recordset'][0].OutBoundFromEmail.split(',');
-                                if (skfEmailList.includes(from[0])) {
-                                    console.log(message.parts[0].body.subject[0]);
-                                    if (message.parts[0].body.subject[0].toLowerCase() === 'inbound') {
-                                        console.log('inbound executed...........................................');
-                                        sendLoggers(1, convertDate(messages[messages.length - 1].attributes.date), "inbound mails found with sequence Number ", "", messages[messages.length - 1].seqNo)
-                                        var parts = imaps.getParts(message.attributes.struct);
-                                        msgFor = 'inbound';
-                                        attachments = attachments.concat(parts.filter(function(part) {
-                                            return part.disposition && part.disposition.type.toUpperCase() === 'ATTACHMENT';
-                                        }).map(function(part) {
-                                            return connection.getPartData(message, part)
-                                                .then(function(partData) {
-                                                    return {
-                                                        seqNo: message.seqNo,
-                                                        emailDetails: recordsets['recordset'][0],
-                                                        // emailDetails: ['sunil.p@benchmarksolution.com'],
-                                                        from: from,
-                                                        date: message.attributes.date,
-                                                        filename: part.disposition.params.filename,
-                                                        data: partData
-                                                    };
-                                                });
-                                        }));
-                                    } else if (message.parts[0].body.subject[0].toLowerCase() === 'outbound') {
-                                        console.log('outbound executed...................................');
-                                        sendLoggers(2, convertDate(messages[messages.length - 1].attributes.date), "outbound mails found with sequence Number", "", messages[messages.length - 1].seqNo)
-                                        var parts = imaps.getParts(message.attributes.struct);
-                                        msgFor = 'outbound';
-                                        attachments = attachments.concat(parts.filter(function(part) {
-                                            return part.disposition && part.disposition.type.toUpperCase() === 'ATTACHMENT';
-                                        }).map(function(part) {
-                                            return connection.getPartData(message, part)
-                                                .then(function(partData) {
-                                                    return {
-                                                        seqNo: message.seqNo,
-                                                        emailDetails: recordsets['recordset'][0],
-                                                        // emailDetails: ['sunil.p@benchmarksolution.com'],
-                                                        from: from,
-                                                        date: message.attributes.date,
-                                                        filename: part.disposition.params.filename,
-                                                        data: partData
-                                                    };
-                                                });
-                                        }));
-                                    }
-                                }
+                                var from = extractEmails(message.parts[0].body.from[0]);
+                                var subject = message.parts[0].body.subject[0];
+                                subjectMain = subject;
+                                // sendLoggers(1, convertDate(messages[messages.length - 1].attributes.date), "mails found with sequence Number ", "", messages[messages.length - 1].seqNo)
+                                var parts = imaps.getParts(message.attributes);
+                                var parts = imaps.getParts(message.attributes.struct);
+                                // console.log(parts);
+                                msgFor = 'inbound';
+                                attachments = attachments.concat(parts.filter(function(part) {
+                                    return part.disposition && part.disposition.type.toUpperCase() === 'ATTACHMENT';
+                                }).map(function(part) {
+                                    return connection.getPartData(message, part)
+                                        .then(function(partData) {
+                                            console.log(partData.length)
+                                            return {
+                                                seqNo: message.seqNo,
+                                                emailDetails: recordsets['recordset'][0],
+                                                // emailDetails: ['sunil.p@benchmarksolution.com'],
+                                                from: from,
+                                                date: message.attributes.date,
+                                                filename: part.params['name'],
+                                                data: partData,
+                                                subject: subject
+                                            };
+                                        });
+                                }));
                             });
                         }
                         return Promise.all(attachments);
-                        // return Promise.all(attachments);
-                        // successMessage = ""
                     }).then((attachments) => {
                         // var attachments = list[0];
                         var msgFrom = msgFor;
@@ -356,58 +344,75 @@ exports.extractEmailAttachment = function(req, res) {
                         let promises = [];
                         var datecurrent = new Date()
                         console.log(`Attachments:${attachments.length} email date:`)
-                            // console.log(attachments)
                         if (attachments.length == 0) {
-                            sendLoggers(0, convertDate(datecurrent), "no attachment found", "")
+                            sendLoggers(0, convertDate(datecurrent), "no attachment found", subjectMain)
                             console.log(`Attachments:${attachments.length} email date:`);
                             // res.send(`Attachments:${attachments.length} email date:`)
                             connection.end()
                         } else {
                             attachments.forEach(attach => {
-                                sendLoggers(msgFrom === 'inbound' ? 1 : 2, convertDate(attach.date), msgFrom === 'inbound' ? "attachment found for inbound" : "attachment found for outbound", "")
+                                sendLoggers(1, convertDate(attach.date), attachments.length + " attachment found ", subjectMain)
                                 var arraybuffer = attach.data;
+                                // console.log("arraybuffer :" + arraybuffer);
+
                                 /* convert data to binary string */
                                 var data = new Uint8Array(arraybuffer);
+                                // console.log("32: " + data);
                                 var arr = new Array();
                                 for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
                                 var bstr = arr.join("");
                                 try {
-                                    const workSheetsFromBuffer = xlsx.parse(attach.data,{ cellDates: true, raw: false, blankrows: false });
-                                    workSheetsFromBuffer.forEach(workbook => {
-                                        promises.push({
-                                            'sheet': workbook.data,
-                                            'date': convertDate(attach.date),
-                                            'seq': attach.seqNo
-                                        })
-                                    });
+                                    var workSheetsFromBuffer;
+                                    workSheetsFromBuffer = xlsx.parse(attach.data, { cellDates: true, raw: false, blankrows: false });
+                                    if (workSheetsFromBuffer != null) {
+                                        workSheetsFromBuffer.forEach(workbook => {
+                                            var sheetColumnName = workbook.data[0];
+                                            promises.push({
+                                                'sheet': workbook.data,
+                                                'date': convertDate(attach.date),
+                                                'seq': attach.seqNo,
+                                                'sheetColumnName': sheetColumnName,
+                                                'from': attach.from,
+                                                'subject': attach.subject,
+                                                'filename': attach.filename
+                                            })
+                                        });
+                                    } else {
+                                        console.log("file type is not xlsx");
+                                    }
                                 } catch (err) {
                                     console.log(err);
                                 }
-
                             });
                         }
-                        return Promise.all([promises, msgFrom]);
+                        return Promise.all(promises);
 
-                    }).then((data) => {
-                        var abc = data[0];
-                        var msgFrom = data[1];
-                        console.log(abc.length);
+                    }).then((abc) => {
+
+                        console.log('promises length : ', abc.length);
                         abc.forEach((element, i) => {
+                            // if (i == 0) {
+                            //    console.log("clm name : ", element.sheetColumnName);
                             setTimeout(() => {
-                                console.log('insert doc : ', element.seq);
-                                // console.log('insert doc file: ',element.sheet);
-                                // console.log('insert doc file single data1 : ',element.sheet[1][1]);
-                                // console.log('insert doc file single data2 : ',element.sheet[1][2]);
-                                if (msgFrom === 'inbound') {
-                                    spinsertInbound(element.sheet, element.date, element.seq)
-                                } else if (msgFrom === 'outbound') {
-                                    spinsertOutbound(element.sheet, element.date, element.seq)
-                                }
-
-                                console.log(element.date, element.seq)
-                            }, i * 1000);
+                                var sheetColumnName = [];
+                                var sheetRowData = [];
+                                var emailFrom = [];
+                                var emailSubject = [];
+                                var emailFileName = [];
+                                sheetColumnName.push(element.sheetColumnName);
+                                sheetRowData.push(element.sheet);
+                                emailFrom.push(element.from);
+                                emailSubject.push(element.subject);
+                                emailFileName.push(element.filename);
+                                console.log("sheetRowData array :" + sheetRowData.length);
+                                spColumnUdt(sheetColumnName, sheetRowData, emailFrom, emailSubject, emailFileName, element.seq, i + 1);
+                            }, i * 2000);
+                            // }
 
                         });
+
+
+
                         res.setTimeout(20000, function() {
                             var datecurrent = new Date()
                             sendLoggers(0, convertDate(datecurrent), "process ended", "")
