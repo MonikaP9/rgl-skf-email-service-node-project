@@ -189,10 +189,10 @@ exports.updateInbound = (request, res) => {
 
             udtInBoundDtlScan.columns.add('InboundDtlID', sql.Int);
             udtInBoundDtlScan.columns.add('PickerID', sql.Int);
-            udtInBoundDtlScan.columns.add('ScanDatetime', sql.DateTime);
+            udtInBoundDtlScan.columns.add('ScanDatetime', sql.VarChar(30));
             udtInBoundDtlScan.columns.add('Location', sql.VarChar(50));
             udtInBoundDtlScan.columns.add('Qty', sql.Int);
-            udtInBoundDtlScan.columns.add('DeleteTime', sql.DateTime);
+            udtInBoundDtlScan.columns.add('DeleteTime', sql.VarChar(30));
 
 
             var barcode = request.body.scannedData;
@@ -201,7 +201,7 @@ exports.updateInbound = (request, res) => {
             // console.log('barcode data :',barcodeList);
 
             barcode.forEach(element => {
-                udtInBoundDtlScan.rows.add(element.InboundDtlID, element.PickerID, new Date(element.ScanDatetime), element.Location, element.Qty, element.DeleteTime != '' ? new Date(element.DeleteTime) : null);
+                udtInBoundDtlScan.rows.add(element.InboundDtlID, element.PickerID,element.ScanDatetime, element.Location, element.Qty, element.DeleteTime != '' ? element.DeleteTime : null);
             });
 
             req.input("invoiceNo", request.body.invoiceNo);

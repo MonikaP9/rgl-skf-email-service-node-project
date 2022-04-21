@@ -113,10 +113,10 @@ exports.updateOutbound = (request, res) => {
 
             udtOutBoundDtlScan.columns.add('OutBoundDtlID', sql.Int);
             udtOutBoundDtlScan.columns.add('PickerID', sql.Int);
-            udtOutBoundDtlScan.columns.add('ScanningDtetime', sql.DateTime);
+            udtOutBoundDtlScan.columns.add('ScanningDtetime', sql.VarChar(30));
             udtOutBoundDtlScan.columns.add('BinLocation', sql.VarChar(50));
             udtOutBoundDtlScan.columns.add('Qty', sql.Int);
-            udtOutBoundDtlScan.columns.add('DeleteDatetime', sql.DateTime);
+            udtOutBoundDtlScan.columns.add('DeleteDatetime', sql.VarChar(30));
 			udtOutBoundDtlScan.columns.add('SeqNo', sql.Int);
 
 
@@ -126,8 +126,8 @@ exports.updateOutbound = (request, res) => {
             // console.log('barcode data :',barcodeList);
 
             barcode.forEach(element => {
-                udtOutBoundDtlScan.rows.add(element.OutBoundDtlID, element.PickerID, new Date(element.ScanningDtetime), 
-				element.BinLocation, element.Qty, element.DeleteDatetime != '' ? new Date(element.DeleteDatetime) : null,element.SeqNo);
+                udtOutBoundDtlScan.rows.add(element.OutBoundDtlID, element.PickerID, element.ScanningDtetime, 
+				element.BinLocation, element.Qty, element.DeleteDatetime != '' ? element.DeleteDatetime : null,element.SeqNo);
             });
 
             req.input("PickingID", request.body.PickingID);

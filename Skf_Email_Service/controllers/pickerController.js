@@ -95,7 +95,12 @@ exports.addPicker = (request, res) => {
 
             //Execute store produce
             req.execute("spInsertPicker", function(err, recordsets, returnValue) {
-                if (err) res.send(err);
+                if (err){
+                    res.send(200, {
+                        "error": 1,
+                        "msg": 'Something went wrong!'
+                    })
+                }
                 else
                 if (recordsets.output != null && recordsets.output.errormsg != null && recordsets.output.errormsg != "") {
 					//console.log("error : ",recordsets);

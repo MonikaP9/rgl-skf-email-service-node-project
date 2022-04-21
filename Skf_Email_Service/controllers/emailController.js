@@ -13,6 +13,10 @@ const simpleParser = require('mailparser').simpleParser;
 const { split, join } = require('lodash');
 var LocalStorage = require('node-localstorage').LocalStorage
 var localStorage = new LocalStorage('./scratch');
+var nodemailer = require('nodemailer');
+var pixelWidth = require('string-pixel-width');
+var configemail = require('../config/autoMail.config');
+
 //regex for emails extraction
 function extractEmails(text) {
     return text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi)
@@ -168,7 +172,6 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                                 } 
 
                             }
-                           
                             console.log("UDT name", udtName);
                             console.log("row Data length :-", column.rows.length);
                             req.input('seqNo', seqNo);
@@ -177,21 +180,22 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                             // console.log('table :',column)
                             sendLoggers(0, convertDate(datecurrent), `Table prepared for spEmailImportRow`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                             req.execute('spEmailImportRow', function(err, recordsets, returnValue) {
-                                // console.log(recordsets)
                                 console.log(`spEmailImportRow recordsets :`)
                                 if (err) {
                                     console.log(`spEmailImportRow error : `, err);
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow error : `, err)
                                 } else {
+                                    console.log("return data : ",recordsets.recordsets[0])
+                                    sendMail(recordsets.recordsets[0])
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow executed successfully`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     sendLoggers(0, convertDate(datecurrent), "insert process ended for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
-                                    localStorage.setItem('process','finished');
+                                    localStorage.setItem('process','finished')
                                     resolve(recordsets)
                                 }
                             })
 
                         } else {
-                            console.log("return not udtName ");
+                            console.log("return not udtName");
                         }
                         //==========================
                     }
@@ -211,6 +215,99 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
 
     })
 }
+
+function sendMail(data){
+    var transporter = nodemailer.createTransport(configemail);
+    if(data.length > 0){
+        try{
+            var json = JSON.stringify(data);
+            var bufferData = Buffer.from(json);
+            const ws = XLSX.utils.json_to_sheet(data)
+            // console.log('sheet : ',ws);
+            // console.log('sheet col width : ',fitToColumn(data));
+            const wb = XLSX.utils.book_new()
+            console.log('sheet width : ',_autoFitColumns(data, ws));
+            const wscols = _autoFitColumns(data, ws)
+            ws['!cols'] = wscols
+            XLSX.utils.book_append_sheet(wb, ws, 'sheet1')
+            let d = new Date();
+            var subject = `Import_process_failed_${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
+            var path = './email_document/'+subject+'.xlsx';
+            var dir = './email_document';
+            if (!fs.existsSync(dir)){
+                console.log('a...');
+                fs.mkdirSync(dir);
+                XLSX.writeFile(wb, path)
+            }else{
+                console.log('b...');
+                var fileDir = path;
+                if (fs.existsSync(fileDir)){
+                    console.log('c...');
+                    fs.unlinkSync(fileDir);
+                    XLSX.writeFile(wb, path);
+                }else{
+                    console.log('d...');
+                    XLSX.writeFile(wb, path);
+                } 
+            }
+        
+            var mailOptions = {
+                from: configemail.auth.user,
+                // to: recordset.recordsets[0][0].ToAccount,
+                to: 'sunil.p@benchmarksolution.com',
+                // cc: recordset.recordsets[0][0].BccAccount,
+                subject: 'Import process failed.',
+                html: '<html><p>Team,</p><p>Please refer the attached sheet and make necessary corrections. Once corrections are resolved then resend the email for import.</p><br><p>This is a system generated email. Do not reply to this email address.</p></html>',
+                attachments: [
+                    {
+                        fileName: 'myFile.xlsx',
+                        path : path
+                      }
+                ]
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log("mail sender error : ",error);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                    res.send('Email sent: ' + info.response)
+                }
+            });
+
+        }catch(e){
+            console.log('mail exception : ',e);
+        }
+    }
+}
+
+const _autoFitColumns = (json, worksheet, header) => {
+    const jsonKeys = header || Object.keys(json[0])
+
+    const objectMaxLength = []
+    jsonKeys.forEach((key) => {
+      objectMaxLength.push(
+        pixelWidth(key, {
+          size: 2,
+        })
+      )
+    })
+
+    json.forEach((data, i) => {
+      const value = json[i]
+      jsonKeys.forEach((key, j) => {
+        const l = value[jsonKeys[j]]
+          ? jsonKeys[j] == 'Scan Datetime' ? 12 : pixelWidth(value[jsonKeys[j]], {
+              size: 2,
+            })
+          : 0
+        objectMaxLength[j] = objectMaxLength[j] >= l ? objectMaxLength[j] : l
+      })
+    })
+
+    return objectMaxLength.map((w) => {
+      return { width: w }
+    })
+  }
 
 //count update if message get deleted for so,cc and handover..................
 function spUpdateEmailSeqNo(typeId, seqNo) {
@@ -283,7 +380,8 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "5623"
+                            "5624"
+                            // "6598"
                             //  `${isDeleted ? (totalMessageCount+1) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+10)}`
                         ];
 
@@ -367,6 +465,7 @@ exports.extractEmailAttachment = function(req, res) {
                                     if (workSheetsFromBuffer != null) {
                                         workSheetsFromBuffer.forEach(workbook => {
                                             var sheetColumnName = workbook.data[0];
+                                            
                                             promises.push({
                                                 'sheet': workbook.data,
                                                 'date': convertDate(attach.date),
@@ -377,6 +476,7 @@ exports.extractEmailAttachment = function(req, res) {
                                                 'filename': attach.filename
                                             })
                                         });
+                                        // console.log('sunil data : ',workSheetsFromBuffer[workSheetsFromBuffer.length - 1].data);
                                     } else {
                                         console.log("file type is not xlsx");
                                     }
