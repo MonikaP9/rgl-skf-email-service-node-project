@@ -27,6 +27,7 @@ const dashboardRouter = require("./routes/dashboardRoute");
 const outboundRouter = require("./routes/outboundRoute");
 const inboundRouter = require("./routes/inboundRoute");
 const userRouter = require("./routes/userRoute");
+const scanRouter = require("./routes/scanRoute");
 
 // const timeConfig = require('../config/frequency.config');
 
@@ -50,6 +51,7 @@ app.use("/dashboard", dashboardRouter);
 app.use("/outbound", outboundRouter);
 app.use("/inbound", inboundRouter);
 app.use("/user", userRouter);
+app.use("/scan", scanRouter);
 
 
 cron.schedule(`*/2 * * * *`, () => {

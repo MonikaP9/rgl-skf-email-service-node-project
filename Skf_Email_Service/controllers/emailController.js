@@ -380,7 +380,7 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "5624"
+                            "5623"
                             // "6598"
                             //  `${isDeleted ? (totalMessageCount+1) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+10)}`
                         ];
