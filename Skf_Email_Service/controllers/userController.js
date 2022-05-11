@@ -1,5 +1,6 @@
 var config = require("../config/db.config");
 const sql = require("mssql");
+var fs = require('fs');
 
 //post user
 
@@ -125,4 +126,16 @@ exports.logoutPicker = (request, res) => {
         console.log(error);
         conn.close();
     });
+}
+
+exports.apkDownload = (request, res) => {
+    var fileName = 'skf_app.apk';
+    if(fileName != null && fs.existsSync('./document/'+fileName)){
+        //./document/InboundData_004201HNWSB1.xlsx
+        res.download("./document/"+fileName)
+    }else{
+        res.send({
+            'error' : 'Unable to download apk file.'
+        });
+    }
 }

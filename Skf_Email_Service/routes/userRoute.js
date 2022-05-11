@@ -7,6 +7,7 @@ const userController = require("../controllers/userController");
 router.post("/verify", userController.verifyUser);
 router.post("/verifyPicker", userController.verifyPicker);
 router.post("/logoutPicker", userController.logoutPicker);
+router.get("/apkDownload", userController.apkDownload);
 
 
 module.exports = router;

@@ -220,6 +220,8 @@ exports.outboundListWeb = (request, res) => {
             req.input("user_id", request.query.user_id);
             req.input("picking_ID", request.query.picking_ID);
             req.input("StatusID", request.query.StatusID);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
 
             req.execute("spGetOutboundWebList", function(err, recordsets, returnValue) {
                 if (err) res.send(err)

@@ -250,6 +250,8 @@ exports.inboundListWeb = (request, res) => {
             req.input("LR_No", request.query.LR_No);
             req.input("From_DC", request.query.From_DC);
             req.input("StatusID", request.query.StatusID);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
 
             req.execute("spGetInboundWebList", function(err, recordsets, returnValue) {
                 // console.log(recordsets.recordset);
