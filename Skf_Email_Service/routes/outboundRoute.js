@@ -11,6 +11,8 @@ router.get("/outboundListWeb", outboundController.outboundListWeb);
 router.get("/outboundWebDetails", outboundController.outboundDetailsWeb);
 router.get("/outboundDelete", outboundController.outboundDelete);
 router.post("/allocateProductOutBound", outboundController.allocateProductOutBound);
+router.get("/outboundDownloadXlsxFileLink", outboundController.outboundDownloadXlsxFileLink);
+
 
 
 

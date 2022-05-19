@@ -1,5 +1,10 @@
 var config = require("../config/db.config");
 const sql = require("mssql");
+const { request } = require("express");
+var XLSX = require('xlsx');
+var http = require('http');
+var fs = require('fs');
+var cors = require('cors');
 
 //get outboundList 
 exports.outboundList = (request, res) => {
@@ -215,6 +220,8 @@ exports.outboundListWeb = (request, res) => {
             req.input("user_id", request.query.user_id);
             req.input("picking_ID", request.query.picking_ID);
             req.input("StatusID", request.query.StatusID);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
 
             req.execute("spGetOutboundWebList", function(err, recordsets, returnValue) {
                 if (err) res.send(err)
@@ -322,6 +329,85 @@ exports.outboundDelete = (request, res) => {
                     }, 200)
                 }
 
+            })
+
+        })
+        .catch(function(err) {
+            console.log(err);
+            conn.close();
+        })
+}
+
+// To bulk Download xlsx file link
+// User_ID , invoice_No  spOutboundDownload
+exports.outboundDownloadXlsxFileLink = (request, res) => {
+
+    var conn = new sql.ConnectionPool(config);
+    conn.connect()
+        //successfull connection 
+        .then(function() {
+            var req = new sql.Request(conn);
+            var isFromList = request.query.is_from_list;
+            req.input("User_ID", request.query.User_ID);
+            req.input("PickingID", request.query.PickingID);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
+            req.input("StatusID", request.query.StatusID);
+
+            console.log('picking id : ',request.query.PickingID);
+
+            req.execute("spOutBoundDownload", function(err, recordsets, returnValue) {
+                // console.log(recordsets.recordset);
+                if (err) res.send(err)
+                else
+                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output != "") {
+                    res.send(200, {
+                        "error": 1,
+                        "msg": recordsets.output.error_msg
+                    })
+                } else {
+                    if (recordsets.recordset != null) {
+                        var data = recordsets.recordset;
+                        const ws = XLSX.utils.json_to_sheet(data)
+                        const wb = XLSX.utils.book_new()
+                        let d = new Date();
+                        var currentDate = `${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
+                        var PickingID = request.query.PickingID != null && request.query.PickingID != '' ? request.query.PickingID : currentDate; // 004201HNWSB1
+                        // console.log('InboundData_' + invoice_No + '.xlsx');
+                        XLSX.utils.book_append_sheet(wb, ws, 'Responses')
+						console.log('123................');
+                        XLSX.writeFile(wb, './document/OutboundData_' + PickingID + '.xlsx')
+						console.log('1456................');
+                            // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
+                        var fileName = 'OutboundData_' + PickingID + '.xlsx';
+                        if(isFromList != null && isFromList){
+                            if(fileName != null && fs.existsSync('./document/'+fileName)){
+                                //./document/InboundData_004201HNWSB1.xlsx
+                                res.download("./document/"+fileName)
+                            }else{
+                                res.send(200, {
+                                    "error": 1,
+                                    "msg": 'Unable to process please check file name.'
+                                })
+                            }
+                        }else{
+                            var result = {
+                                'fileName': fileName
+                            }
+                            res.send({
+                                "error": 0,
+                                "msg": result
+                        }, 200)
+                        }
+                    }else{
+                        res.send({
+                            "error": 1,
+                            "msg": 'Data not available for download.'
+                    }, 200)
+                    }
+
+
+                }
             })
 
         })

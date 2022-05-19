@@ -250,6 +250,8 @@ exports.inboundListWeb = (request, res) => {
             req.input("LR_No", request.query.LR_No);
             req.input("From_DC", request.query.From_DC);
             req.input("StatusID", request.query.StatusID);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
 
             req.execute("spGetInboundWebList", function(err, recordsets, returnValue) {
                 // console.log(recordsets.recordset);
@@ -443,7 +445,7 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
             req.input("User_ID", request.query.User_ID);
             req.input("invoice_No", request.query.invoice_No);
 
-            req.execute("spInboundDownload", function(err, recordsets, returnValue) {
+            req.execute("spInboundSingleDownload", function(err, recordsets, returnValue) {
                 // console.log(recordsets.recordset);
                 if (err) res.send(err)
                 else
@@ -457,7 +459,10 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         var data = recordsets.recordset;
                         const ws = XLSX.utils.json_to_sheet(data)
                         const wb = XLSX.utils.book_new()
-                        var invoice_No = request.query.invoice_No; // 004201HNWSB1
+                        let d = new Date();
+                        var currentDate = `${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
+                        var invoice_No = request.query.invoice_No != null && request.query.invoice_No != '' ? request.query.invoice_No : currentDate;
+                        // var invoice_No = request.query.invoice_No; // 004201HNWSB1
                         // console.log('InboundData_' + invoice_No + '.xlsx');
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
 						console.log('123................');
@@ -486,6 +491,92 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         }
                     
 
+                    }else{
+                        res.send({
+                            "error": 1,
+                            "msg": 'Data not available for download.'
+                    }, 200)
+                    }
+
+
+                }
+            })
+
+        })
+        .catch(function(err) {
+            console.log(err);
+            conn.close();
+        })
+}
+
+
+// To Download xlsx file link
+// User_ID , invoice_No  spInboundDownload
+exports.inboundBulkDownloadXlsxFileLink = (request, res) => {
+
+    var conn = new sql.ConnectionPool(config);
+    conn.connect()
+        //successfull connection 
+        .then(function() {
+            var req = new sql.Request(conn);
+            var isFromList = request.query.is_from_list;
+            req.input("User_ID", request.query.User_ID);
+            req.input("invoice_No", request.query.invoice_No);
+            req.input("FromDate", request.query.FromDate);
+            req.input("ToDate", request.query.ToDate);
+            req.input("StatusID", request.query.StatusID);
+
+            req.execute("spInboundDownload", function(err, recordsets, returnValue) {
+                // console.log(recordsets.recordset);
+                if (err) res.send(err)
+                else
+                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output != "") {
+                    res.send(200, {
+                        "error": 1,
+                        "msg": recordsets.output.error_msg
+                    })
+                } else {
+                    if (recordsets.recordset != null) {
+                        var data = recordsets.recordset;
+                        const ws = XLSX.utils.json_to_sheet(data)
+                        const wb = XLSX.utils.book_new()
+                        let d = new Date();
+                        var currentDate = `${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
+                        var invoice_No = request.query.invoice_No != null && request.query.invoice_No != '' ? request.query.invoice_No : currentDate;
+                        // var invoice_No = request.query.invoice_No; // 004201HNWSB1
+                        // console.log('InboundData_' + invoice_No + '.xlsx');
+                        XLSX.utils.book_append_sheet(wb, ws, 'Responses')
+						console.log('123................');
+                        XLSX.writeFile(wb, './document/InboundData_' + invoice_No + '.xlsx')
+						console.log('1456................');
+                            // var downloadLink = "E:/monika/node_project/Skf_Email_Service/document/InboundData_" + invoice_No + ".xlsx ";
+                        var fileName = 'InboundData_' + invoice_No + '.xlsx';
+                        if(isFromList != null && isFromList){
+                            if(fileName != null && fs.existsSync('./document/'+fileName)){
+                                //./document/InboundData_004201HNWSB1.xlsx
+                                res.download("./document/"+fileName)
+                            }else{
+                                res.send(200, {
+                                    "error": 1,
+                                    "msg": 'Unable to process please check file name.'
+                                })
+                            }
+                        }else{
+                            var result = {
+                                'fileName': fileName
+                            }
+                            res.send({
+                                "error": 0,
+                                "msg": result
+                        }, 200)
+                        }
+                    
+
+                    }else{
+                        res.send({
+                            "error": 1,
+                            "msg": 'Data not available for download.'
+                    }, 200)
                     }
 
 
