@@ -15,6 +15,7 @@ router.post("/createInbound", inboundController.createInbound);
 router.get("/inboundDownloadXlsxFileLink", inboundController.inboundDownloadXlsxFileLink);
 router.get("/inboundBulkDownloadXlsxFileLink", inboundController.inboundBulkDownloadXlsxFileLink);
 router.get("/download", inboundController.downloadDoc);
+router.get("/barcodeConf", inboundController.barcodeMaster);
 
 module.exports = router;
 

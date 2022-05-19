@@ -17,6 +17,16 @@ imap: {
   tlsOptions: { rejectUnauthorized: false }
 }
 
+// imap: {
+//   user: 'sunilbench030@gmail.com',
+//   password: 'Sunil123#',
+//   host: 'pop.gmail.com',
+//   port: 993,
+//   tls: true,
+//   authTimeout: 3000,
+//   tlsOptions: { rejectUnauthorized: false }
+// }
+
 }
 module.exports = config;
 

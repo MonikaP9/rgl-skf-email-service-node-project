@@ -52,15 +52,15 @@ app.use("/inbound", inboundRouter);
 app.use("/user", userRouter);
 
 
-cron.schedule(`*/2 * * * *`, () => {
-    console.log('running a task 5 minute minute');
-    console.log(new Date().timeNow());
-    request('http://localhost:7000/email/details', function(error, response, body) {
-        console.error('error:', error); // Print the error if one occurred
-        console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-        console.log('body:', body); // Print the HTML for the Google homepage.
-    });
-});
+// cron.schedule(`*/2 * * * *`, () => {
+//     console.log('running a task 5 minute minute');
+//     console.log(new Date().timeNow());
+//     request('http://localhost:7000/email/details', function(error, response, body) {
+//         console.error('error:', error); // Print the error if one occurred
+//         console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+//         console.log('body:', body); // Print the HTML for the Google homepage.
+//     });
+// });
 
 
 app.listen(port, () => console.log(`The app is running on Port: ${port}.`));

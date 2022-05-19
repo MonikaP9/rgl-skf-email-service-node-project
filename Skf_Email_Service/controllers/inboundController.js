@@ -604,3 +604,43 @@ exports.downloadDoc=(request, res)=>{
     }
     
 }
+
+//get inboundList 
+exports.barcodeMaster = (request, res) => {
+    var conn = new sql.ConnectionPool(config);
+    conn.connect()
+        //successfull connection
+        .then(function() {
+            //create request instance and passing in connection instance
+            var req = new sql.Request(conn);
+            console.log("entered");
+
+            req.input("account_id", request.query.accountId);
+           
+
+            //Execute store produce
+            req.execute("spGetBarcodeConf", function(err, recordsets, returnValue) {
+                if (err) res.send(err)
+                else
+                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                    res.send(200, {
+                        "error": 1,
+                        "msg": recordsets.output.error_msg
+                    })
+                } else {
+                    console.log(recordsets);
+                    res.send({
+                        "error": 0,
+                        "data": recordsets.recordset
+                    }, 200)
+                }
+
+            })
+        })
+        //Handle connection error
+        .catch(function(err) {
+            console.log(err);
+            conn.close();
+        });
+
+}

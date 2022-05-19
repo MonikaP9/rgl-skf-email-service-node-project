@@ -154,6 +154,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                             for (var n = 1; n < sheetRowData[0].length; n++) {
                                 if (udtName.trim() == 'udtEmailImportInBound') {
                                     spName = 'spInsertEmailImportInBound';
+                                    console.log('Row data by header name : ',sheetRowData[0][0] == 'IPIVNR' ? sheetRowData[0][n] : 'NA');
                                     column.rows.add(
                                         sheetRowData[0][n][0], sheetRowData[0][n][1], sheetRowData[0][n][2], sheetRowData[0][n][3], sheetRowData[0][n][4], sheetRowData[0][n][5],
                                         sheetRowData[0][n][6], sheetRowData[0][n][7], sheetRowData[0][n][8], sheetRowData[0][n][9], sheetRowData[0][n][10], sheetRowData[0][n][11],
@@ -186,7 +187,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow error : `, err)
                                 } else {
                                     // console.log("return data : ",recordsets.recordsets[0])
-                                    sendMail(recordsets.recordsets[0])
+                                    sendMail(recordsets.recordsets[0],udtName.trim())
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow executed successfully`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     sendLoggers(0, convertDate(datecurrent), "insert process ended for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     localStorage.setItem('process','finished')
@@ -216,7 +217,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
     })
 }
 
-function sendMail(data){
+function sendMail(data,udtName){
     var transporter = nodemailer.createTransport(configemail);
     if(data.length > 0){
         try{
@@ -231,7 +232,7 @@ function sendMail(data){
             ws['!cols'] = wscols
             XLSX.utils.book_append_sheet(wb, ws, 'sheet1')
             let d = new Date();
-            var subject = `Import_process_failed_${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
+            var subject = `Import_process_failed_${udtName == 'udtEmailImportInBound' ? 'for_inward' : 'for_picking'}_${d.getDate()}_${d.getMonth()+1}_${d.getFullYear()}_${d.getHours()}_${d.getMinutes()}`;
             var path = './email_document/'+subject+'.xlsx';
             var dir = './email_document';
             if (!fs.existsSync(dir)){
@@ -256,7 +257,7 @@ function sendMail(data){
                 // to: recordset.recordsets[0][0].ToAccount,
                 to: 'sunil.p@benchmarksolution.com',
                 // cc: recordset.recordsets[0][0].BccAccount,
-                subject: 'Import process failed.',
+                subject: udtName == 'udtEmailImportInBound' ? 'Import process failed for Inward.' : 'Import process failed for Picking.',
                 html: '<html><p>Team,</p><p>Please refer the attached sheet and make necessary corrections. Once corrections are resolved then resend the email for import.</p><br><p>This is a system generated email. Do not reply to this email address.</p></html>',
                 attachments: [
                     {
@@ -380,8 +381,9 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "6757"
-                            // "6720"
+                            // "6757"
+                            "6720"
+                            // "6835"
                             //  `${isDeleted ? (totalMessageCount+1) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+10)}`
                         ];
 
