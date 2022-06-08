@@ -602,7 +602,6 @@ exports.downloadDoc=(request, res)=>{
             "msg": 'Unable to process please check file name.'
         })
     }
-    
 }
 
 //get inboundList 
@@ -629,6 +628,7 @@ exports.barcodeMaster = (request, res) => {
                     })
                 } else {
                     console.log(recordsets);
+                    console.log('group by data : ',groupBy(recordsets.recordset, 'BarcodeType'));
                     res.send({
                         "error": 0,
                         "data": recordsets.recordset
@@ -644,3 +644,24 @@ exports.barcodeMaster = (request, res) => {
         });
 
 }
+
+// function groupBy(list, keyGetter) {
+//     const map = new Map();
+//     list.forEach((item) => {
+//          const key = keyGetter(item);
+//          const collection = map.get(key);
+//          if (!collection) {
+//              map.set(key, [item]);
+//          } else {
+//              collection.push(item);
+//          }
+//     });
+//     return map;
+// }
+
+var groupBy = function(xs, key) {
+    return xs.reduce(function(rv, x) {
+      (rv[x[key]] = rv[x[key]] || []).push(x);
+      return rv;
+    }, {});
+  };
