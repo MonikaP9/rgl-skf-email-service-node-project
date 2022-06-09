@@ -26,7 +26,7 @@ const config = {
     // server: '202.189.254.89', 
     server: '192.168.3.11',
     port: 50133,
-    database: 'RGL_SKF',
+    database: 'RGL_SKF_Merge',
 
 }
 module.exports = config;
