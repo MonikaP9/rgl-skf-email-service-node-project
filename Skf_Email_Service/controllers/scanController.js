@@ -152,6 +152,8 @@ exports.addScan = (request, res) => {
             req.input('status', request.body.status);
             req.input('OutboundDtlID', request.body.outboundDtlId);
             req.input('ScanBoxes', request.body.scanBoxes);
+            req.input('PickerID', request.body.PickerID);
+            req.input('PickingID', request.body.PickingID);
 
             //Execute Store procedure  
             req.execute('spinsert_scan_data', function(err, recordsets, returnValue) {
