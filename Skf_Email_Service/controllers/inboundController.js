@@ -5,6 +5,8 @@ var XLSX = require('xlsx');
 var http = require('http');
 var fs = require('fs');
 var cors = require('cors');
+var pixelWidth = require('string-pixel-width');
+
 
 //get inboundList 
 exports.inboundList = (request, res) => {
@@ -464,6 +466,8 @@ exports.inboundDownloadXlsxFileLink = (request, res) => {
                         var invoice_No = request.query.invoice_No != null && request.query.invoice_No != '' ? request.query.invoice_No : currentDate;
                         // var invoice_No = request.query.invoice_No; // 004201HNWSB1
                         // console.log('InboundData_' + invoice_No + '.xlsx');
+                        const wscols = _autoFitColumns(data, ws)
+                        ws['!cols'] = wscols
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
 						console.log('123................');
                         XLSX.writeFile(wb, './document/InboundData_' + invoice_No + '.xlsx')
@@ -545,6 +549,8 @@ exports.inboundBulkDownloadXlsxFileLink = (request, res) => {
                         var invoice_No = request.query.invoice_No != null && request.query.invoice_No != '' ? request.query.invoice_No : currentDate;
                         // var invoice_No = request.query.invoice_No; // 004201HNWSB1
                         // console.log('InboundData_' + invoice_No + '.xlsx');
+                        const wscols = _autoFitColumns(data, ws)
+                        ws['!cols'] = wscols
                         XLSX.utils.book_append_sheet(wb, ws, 'Responses')
 						console.log('123................');
                         XLSX.writeFile(wb, './document/InboundData_' + invoice_No + '.xlsx')
@@ -604,3 +610,32 @@ exports.downloadDoc=(request, res)=>{
     }
     
 }
+
+const _autoFitColumns = (json, worksheet, header) => {
+    const jsonKeys = header || Object.keys(json[0])
+
+    const objectMaxLength = []
+    jsonKeys.forEach((key) => {
+      objectMaxLength.push(
+        pixelWidth(key, {
+          size: 2,
+        })
+      )
+    })
+
+    json.forEach((data, i) => {
+      const value = json[i]
+      jsonKeys.forEach((key, j) => {
+        const l = value[jsonKeys[j]]
+          ? jsonKeys[j] == 'Scan Datetime' ? 12 : pixelWidth(value[jsonKeys[j]], {
+              size: 2,
+            })
+          : 0
+        objectMaxLength[j] = objectMaxLength[j] >= l ? objectMaxLength[j] : l
+      })
+    })
+
+    return objectMaxLength.map((w) => {
+      return { width: w }
+    })
+  }

@@ -185,7 +185,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                                     console.log(`spEmailImportRow error : `, err);
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow error : `, err)
                                 } else {
-                                    // console.log("return data : ",recordsets.recordsets[0])
+                                    console.log("return data : ",recordsets)
                                     sendMail(recordsets.recordsets[0])
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow executed successfully`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     sendLoggers(0, convertDate(datecurrent), "insert process ended for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
@@ -381,7 +381,7 @@ exports.extractEmailAttachment = function(req, res) {
 
                         searchCriteria = [
                             // "5624"
-                            "6757"
+                            "7019"
                             // "6720"
                             //  `${isDeleted ? (totalMessageCount+1) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+1)}:${isDeleted ? (totalMessageCount+10) : (recordsets['recordsets'][0][0]['InBoundSeqNo']+10)}`
                         ];

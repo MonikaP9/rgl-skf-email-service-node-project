@@ -316,7 +316,7 @@ const _autoFitColumns = (json, worksheet, header) => {
   }
 
   exports.apkDownload = (request, res) => {
-    var fileName = 'skf_honda_app.apk';
+    var fileName = 'skf_app.apk';
     if(fileName != null && fs.existsSync('./document/'+fileName)){
         //./document/InboundData_004201HNWSB1.xlsx
         res.download("./document/"+fileName)
