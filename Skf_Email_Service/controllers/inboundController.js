@@ -99,15 +99,16 @@ exports.allocateProduct = (request, res) => {
             req.input("PickerID", request.body.PickerID);
             req.input("invoiceNo", request.body.invoiceNo);
             req.input("number_of_picker", request.body.number_of_picker);
+            req.output('message', sql.VarChar(sql.MAX));
 
             //Execute store produce
             req.execute("spAllocateInBoundProduct", function(err, recordsets, returnValue) {
                 if (err) res.send(err);
                 else
-                if (recordsets.output != null && recordsets.output.error_msg != null && recordsets.output.error_msg != "") {
+                if (recordsets.output != null && recordsets.output.message != null && recordsets.output.message != "") {
                     res.send(200, {
                         "error": 1,
-                        "msg": recordsets.output.error_msg
+                        "msg": recordsets.output.message
                     })
                 } else {
                     res.send({
