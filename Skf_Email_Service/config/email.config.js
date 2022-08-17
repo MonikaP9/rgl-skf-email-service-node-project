@@ -8,8 +8,8 @@ const config = {
 //     authTimeout: 3000
 // }
 imap: {
-  user: 'sunil.p@benchmarksolution.com',
-  password: 'sunil123#',
+  user: 'sunilbench030@gmail.com',
+  password: 'cepjtjzioxebjegz',
   host: 'pop.gmail.com',
   port: 993,
   tls: true,

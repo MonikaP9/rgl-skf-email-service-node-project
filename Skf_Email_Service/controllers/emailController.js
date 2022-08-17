@@ -380,7 +380,7 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "7051"
+                            "2"
                             // "7037"
                             // "7031"
                             // "6720"
@@ -538,6 +538,62 @@ exports.extractEmailAttachment = function(req, res) {
     // printy()
 
 }
+
+exports.autoMailDaily = (request, res) => {
+    var conn = new sql.ConnectionPool(dbconfig);
+    var transporter = nodemailer.createTransport(configemail);
+  
+    conn.connect()
+        // Successfull connection
+        .then(function () {
+            // Create request instance, passing in connection instance
+            var req = new sql.Request(conn);
+            // Call mssql's query method passing in params
+            req.execute('pAutoMail', async function(err, recordset, returnValue) {
+                    console.log("recordset : ",recordset);
+                    console.log("sheet details 0: ",recordset.recordsets[0]);
+                    console.log("sheet details 1: ",recordset.recordsets[1]);
+  
+                    if(err){
+                        console.log(err);
+                        res.send(err);
+                    }
+                    // res.send(recordset)
+  
+                    if(recordset != null){
+                        console.log('123.............................');
+                        try{
+                            var mailOptions = {
+                                from: configemail.auth.user,
+                                // to: recordset.recordsets[0][0].ToAccount,
+                                to: 'sunil.p@benchmarksolution.com',
+                                cc: 'shivshankar.n@benchmarksolution.com',
+                                subject: recordset.recordsets[0][0].subject,
+                                html: recordset.recordsets[0][0].Body,
+                            };
+                            transporter.sendMail(mailOptions, function (error, info) {
+                                if (error) {
+                                    console.log("mail sender error : ",error);
+                                } else {
+                                    console.log('Email sent: ' + info.response);
+                                    res.send('Email sent: ' + info.response)
+                                }
+                            });
+  
+                        }catch(e){
+                            console.log('mail exception : ',e);
+                        }
+                       
+                    }
+                    conn.close();
+                })
+        })
+        // Handle connection errors
+        .catch(function (err) {
+            console.log(err);
+            conn.close();
+        });
+  }
 
 exports.parseXl = function(req, res) {
     var workbook = XLSX.readFile('abc.xlsb');

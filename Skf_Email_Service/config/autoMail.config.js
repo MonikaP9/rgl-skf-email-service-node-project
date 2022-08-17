@@ -8,8 +8,8 @@ const autoEmailconfig = {
     secureConnection: false,
     // secure: true, // use SSL
     auth: {
-      user: 'sunil.p@benchmarksolution.com',
-      pass: 'sunil123#'
+      user: 'sunilbench030@gmail.com',
+      pass: 'cepjtjzioxebjegz'
   }
     // auth: {
     //     user: 'ct.hmd@rob-log.com',
