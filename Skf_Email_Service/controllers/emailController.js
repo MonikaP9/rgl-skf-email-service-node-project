@@ -380,7 +380,7 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "2"
+                            "33"
                             // "7037"
                             // "7031"
                             // "6720"

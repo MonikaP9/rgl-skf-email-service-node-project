@@ -9,10 +9,10 @@ const autoEmailconfig = {
     // secure: true, // use SSL
     auth: {
       user: 'sunilbench030@gmail.com',
-      pass: 'cepjtjzioxebjegz'
+      pass: 'gligcyuuqwvdkbvm'
   }
     // auth: {
-    //     user: 'ct.hmd@rob-log.com',
+    //     user: 'ct.skf@rob-log.com',
     //     pass: 'C3#tb5s@i9%r'
     // }
 }

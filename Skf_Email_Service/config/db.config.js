@@ -21,8 +21,8 @@
 // module.exports = config;
 
 const config = {
-    user: 'sa',
-    password: 'Bcsp!@VD#2',
+    user: 'User113',
+    password: 'User11@3',
     // server: '202.189.254.89', 
     server: '192.168.3.11',
     port: 50133,

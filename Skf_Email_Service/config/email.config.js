@@ -1,6 +1,6 @@
 const config = {
 //   imap: {
-//     user: 'ct.hmd@rob-log.com',
+//     user: 'ct.skf@rob-log.com',
 //     password: 'C3#tb5s@i9%r',
 //     host: 'pop.robinsonsglobal.com',
 //     port: 993,
@@ -9,11 +9,12 @@ const config = {
 // }
 imap: {
   user: 'sunilbench030@gmail.com',
-  password: 'cepjtjzioxebjegz',
+  // password: 'Sunil123#',
+  password: 'gligcyuuqwvdkbvm',
   host: 'pop.gmail.com',
   port: 993,
   tls: true,
-  authTimeout: 3000,
+  authTimeout: 120000,
   tlsOptions: { rejectUnauthorized: false }
 }
 
