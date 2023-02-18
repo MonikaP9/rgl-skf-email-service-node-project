@@ -56,6 +56,8 @@ exports.getPicklistData = (request, res) => {
             var req = new sql.Request(conn);
             console.log("entered");
             //Execute store procedure
+            req.input("warehouseId", request.query.warehouseId);
+            req.input("pickerId", request.query.pickerId);
 
             req.execute("sp_get_PickList", function(err, recordsets, returnValue) {
                 if (err) res.send(err)
@@ -95,6 +97,8 @@ exports.getPickDetails = (request, res) => {
             console.log("entered");
             //Execute store procedure
             req.input("PickingID", request.query.PickingID);
+            req.input("warehouseId", request.query.warehouseId);
+            req.input("pickerId", request.query.pickerId);
 
 
             req.execute("spGetPicklistDetails", function(err, recordsets, returnValue) {
@@ -154,6 +158,7 @@ exports.addScan = (request, res) => {
             req.input('ScanBoxes', request.body.scanBoxes);
             req.input('PickerID', request.body.PickerID);
             req.input('PickingID', request.body.PickingID);
+            req.input("warehouseId", request.body.warehouseId);
 
             //Execute Store procedure  
             req.execute('spinsert_scan_data', function(err, recordsets, returnValue) {
@@ -193,6 +198,7 @@ exports.autoMail = (request, res) => {
         .then(function () {
             // Create request instance, passing in connection instance
             var req = new sql.Request(conn);
+            req.input("warehouseId", request.query.warehouseId);
             // Call mssql's query method passing in params
             req.execute('sp_get_scan_data', async function(err, recordset, returnValue) {
 				

@@ -186,7 +186,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow error : `, err)
                                 } else {
                                     console.log("return data : ",recordsets)
-                                    sendMail(recordsets.recordsets[0])
+                                    sendMail(recordsets.recordsets[0],recordsets.recordsets[1])
                                     sendLoggers(0, convertDate(datecurrent), `spEmailImportRow executed successfully`, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     sendLoggers(0, convertDate(datecurrent), "insert process ended for seqNo " + seqNo + "and doc no " + docNo, "subject - " + emailSubject[0] + " file name - " + emailFileName[0])
                                     localStorage.setItem('process','finished')
@@ -216,7 +216,7 @@ function spColumnUdt(emailColumnName, sheetRowData, emailFrom, emailSubject, ema
     })
 }
 
-function sendMail(data){
+function sendMail(data,emailData){
     var transporter = nodemailer.createTransport(configemail);
     if(data.length > 0){
         try{
@@ -254,8 +254,11 @@ function sendMail(data){
             var mailOptions = {
                 from: configemail.auth.user,
                 // to: recordset.recordsets[0][0].ToAccount,
-                to: 'sunil.p@benchmarksolution.com',
+                // to: 'sunil.p@benchmarksolution.com',
                 // cc: recordset.recordsets[0][0].BccAccount,
+                to: emailData[0].ToAccount != null && emailData[0].ToAccount != '' ? emailData[0].ToAccount : 'sunil.p@benchmarksolution.com',
+				cc: emailData[0].CcAccount,
+                bcc: emailData[0].BccAccount,
                 subject: 'Import process failed.',
                 html: '<html><p>Team,</p><p>Please refer the attached sheet and make necessary corrections. Once corrections are resolved then resend the email for import.</p><br><p>This is a system generated email. Do not reply to this email address.</p></html>',
                 attachments: [
@@ -380,7 +383,7 @@ exports.extractEmailAttachment = function(req, res) {
                         }
 
                         searchCriteria = [
-                            "33"
+                            "84"
                             // "7037"
                             // "7031"
                             // "6720"

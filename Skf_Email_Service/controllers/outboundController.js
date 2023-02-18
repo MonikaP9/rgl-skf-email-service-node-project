@@ -140,6 +140,7 @@ exports.updateOutbound = (request, res) => {
 
             req.input("PickingID", request.body.PickingID);
 			req.input("PickerID", request.body.PickerID);
+			req.input("warehouseId", request.body.warehouseId);
             req.input("udtOutBoundDtlScan", udtOutBoundDtlScan);
 
 

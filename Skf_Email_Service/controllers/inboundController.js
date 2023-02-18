@@ -209,6 +209,7 @@ exports.updateInbound = (request, res) => {
 
             req.input("invoiceNo", request.body.invoiceNo);
 			req.input("PickerID", request.body.PickerID);
+			req.input("warehouseId", request.body.warehouseId);
             req.input("udtInBoundDtlScan", udtInBoundDtlScan);
 
 
